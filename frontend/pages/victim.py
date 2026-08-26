@@ -7,7 +7,8 @@ def get_headers():
     return {"Authorization": f"Bearer {st.session_state.get('token', '')}"}
 
 def render():
-    st.header("🛡️ Victim Portal")
+    st.markdown("<h2>🛡️ Victim Portal</h2>", unsafe_allow_html=True)
+    st.markdown("<p style='color: #6b7280; font-size: 1.1rem; margin-bottom: 1.5rem;'>Manage your complaints, file new reports, and track updates.</p>", unsafe_allow_html=True)
 
     tab1, tab2, tab3 = st.tabs(["📋 My Complaints", "➕ New Complaint", "🔔 Notifications"])
 

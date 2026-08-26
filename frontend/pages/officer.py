@@ -7,7 +7,8 @@ def get_headers():
     return {"Authorization": f"Bearer {st.session_state.get('token', '')}"}
 
 def render():
-    st.header("🚔 Officer Dashboard")
+    st.markdown("<h2>🚔 Officer Dashboard</h2>", unsafe_allow_html=True)
+    st.markdown("<p style='color: #6b7280; font-size: 1.1rem; margin-bottom: 1.5rem;'>Manage active cases, investigate suspects, and coordinate with agencies.</p>", unsafe_allow_html=True)
 
     tab1, tab2, tab3, tab4 = st.tabs([
         "📁 Active Cases", "📋 All Complaints", "🕵️ Suspects", "🤝 Agency Coordination"

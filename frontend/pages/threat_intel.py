@@ -11,7 +11,8 @@ def get_headers():
 
 
 def render():
-    st.header("Threat Intelligence Dashboard")
+    st.markdown("<h2>🌐 Threat Intelligence Dashboard</h2>", unsafe_allow_html=True)
+    st.markdown("<p style='color: #6b7280; font-size: 1.1rem; margin-bottom: 1.5rem;'>Monitor indicators of compromise, threat feeds, and campaign trends.</p>", unsafe_allow_html=True)
 
     tabs = st.tabs([
         "Threat Overview", "IOC Search", "Threat Feeds",
