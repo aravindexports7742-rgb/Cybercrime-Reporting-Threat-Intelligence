@@ -1,0 +1,56 @@
+-- MySQL dump 10.13  Distrib 8.0.46, for Win64 (x86_64)
+--
+-- Host: localhost    Database: cyber_threat_platform
+-- ------------------------------------------------------
+-- Server version	8.0.46
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!50503 SET NAMES utf8 */;
+/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
+/*!40103 SET TIME_ZONE='+00:00' */;
+/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
+/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
+/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
+/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+
+--
+-- Table structure for table `threat_feeds`
+--
+
+DROP TABLE IF EXISTS `threat_feeds`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `threat_feeds` (
+  `feed_id` int NOT NULL AUTO_INCREMENT,
+  `source_id` int NOT NULL,
+  `ingested_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `record_count` int DEFAULT '0',
+  `status` enum('Success','Partial','Failed') NOT NULL DEFAULT 'Success',
+  PRIMARY KEY (`feed_id`),
+  KEY `source_id` (`source_id`),
+  CONSTRAINT `threat_feeds_ibfk_1` FOREIGN KEY (`source_id`) REFERENCES `threat_sources` (`source_id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=101 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `threat_feeds`
+--
+
+LOCK TABLES `threat_feeds` WRITE;
+/*!40000 ALTER TABLE `threat_feeds` DISABLE KEYS */;
+INSERT INTO `threat_feeds` VALUES (1,77,'2026-06-03 11:21:53',1145,'Failed'),(2,1,'2026-03-23 21:19:53',128,'Failed'),(3,23,'2026-05-12 18:22:53',4055,'Partial'),(4,69,'2026-08-05 15:38:53',685,'Failed'),(5,4,'2026-03-07 21:36:53',1061,'Partial'),(6,49,'2026-03-26 00:55:53',1501,'Failed'),(7,2,'2026-07-25 21:56:53',1630,'Partial'),(8,2,'2026-06-30 13:18:53',2353,'Failed'),(9,91,'2026-05-27 06:14:53',2533,'Failed'),(10,29,'2026-06-27 20:56:53',351,'Partial'),(11,64,'2026-02-26 13:41:53',1762,'Success'),(12,26,'2026-03-16 00:12:53',2322,'Failed'),(13,65,'2026-04-22 06:44:53',1637,'Failed'),(14,95,'2026-04-03 14:36:53',4989,'Failed'),(15,23,'2026-08-09 18:11:53',582,'Success'),(16,34,'2026-04-03 04:23:53',4335,'Failed'),(17,36,'2026-07-07 15:18:53',4415,'Failed'),(18,33,'2026-03-04 18:23:53',3768,'Success'),(19,55,'2026-03-14 14:38:53',474,'Partial'),(20,56,'2026-05-14 04:12:53',4295,'Partial'),(21,64,'2026-05-25 19:31:53',406,'Failed'),(22,29,'2026-08-14 03:21:53',3491,'Failed'),(23,58,'2026-06-07 11:54:53',1644,'Partial'),(24,11,'2026-04-02 11:32:53',1898,'Failed'),(25,55,'2026-08-07 05:07:53',1397,'Partial'),(26,40,'2026-08-09 15:39:53',842,'Success'),(27,62,'2026-05-08 11:42:53',2788,'Partial'),(28,32,'2026-07-29 21:04:53',2841,'Success'),(29,43,'2026-04-15 05:15:53',4964,'Failed'),(30,57,'2026-08-01 15:51:53',4792,'Success'),(31,11,'2026-08-11 10:55:53',2616,'Failed'),(32,9,'2026-07-25 10:21:53',3670,'Success'),(33,39,'2026-03-22 15:52:53',588,'Success'),(34,87,'2026-08-11 19:16:53',2465,'Partial'),(35,52,'2026-08-01 16:31:53',3417,'Success'),(36,77,'2026-03-10 17:19:53',3764,'Partial'),(37,60,'2026-05-08 16:40:53',879,'Partial'),(38,84,'2026-03-07 11:50:53',4287,'Partial'),(39,76,'2026-07-08 09:13:53',150,'Failed'),(40,92,'2026-08-08 17:29:53',1636,'Failed'),(41,17,'2026-03-15 20:03:53',2961,'Partial'),(42,62,'2026-03-20 22:08:53',2041,'Success'),(43,6,'2026-08-11 08:00:53',4838,'Partial'),(44,66,'2026-03-13 01:00:53',4831,'Failed'),(45,100,'2026-07-20 07:49:53',2578,'Failed'),(46,44,'2026-06-13 01:19:53',4290,'Failed'),(47,85,'2026-03-06 08:16:53',1994,'Failed'),(48,72,'2026-08-12 22:57:53',1650,'Success'),(49,82,'2026-07-06 09:58:53',1601,'Failed'),(50,61,'2026-03-01 13:50:53',4963,'Failed'),(51,43,'2026-03-30 17:58:53',2504,'Partial'),(52,43,'2026-07-16 08:50:53',395,'Partial'),(53,29,'2026-08-25 16:05:53',1936,'Partial'),(54,80,'2026-07-03 04:49:53',2765,'Failed'),(55,49,'2026-07-05 00:08:53',105,'Partial'),(56,2,'2026-08-08 01:18:53',4594,'Success'),(57,19,'2026-06-12 22:07:53',4847,'Partial'),(58,6,'2026-08-19 06:07:53',2377,'Success'),(59,29,'2026-06-19 13:08:53',2833,'Failed'),(60,32,'2026-07-12 06:18:53',1492,'Partial'),(61,13,'2026-08-20 15:11:53',3154,'Failed'),(62,15,'2026-06-01 06:00:53',3787,'Success'),(63,48,'2026-05-22 15:09:53',4366,'Failed'),(64,56,'2026-08-10 09:10:53',1121,'Success'),(65,25,'2026-04-11 23:35:53',3115,'Partial'),(66,77,'2026-05-08 16:04:53',428,'Failed'),(67,76,'2026-07-08 19:01:53',1267,'Partial'),(68,32,'2026-08-12 15:29:53',2344,'Success'),(69,66,'2026-03-29 21:06:53',716,'Partial'),(70,85,'2026-03-22 10:09:53',4216,'Partial'),(71,97,'2026-03-13 19:56:53',4134,'Failed'),(72,60,'2026-07-12 01:34:53',3112,'Failed'),(73,89,'2026-04-24 13:48:53',3931,'Partial'),(74,75,'2026-05-15 15:21:53',4833,'Failed'),(75,5,'2026-07-04 04:22:53',1712,'Partial'),(76,31,'2026-05-17 06:00:53',3531,'Partial'),(77,74,'2026-07-17 01:03:53',4560,'Success'),(78,18,'2026-08-05 02:51:53',4300,'Partial'),(79,30,'2026-03-30 10:50:53',4246,'Failed'),(80,44,'2026-05-08 21:50:53',3593,'Partial'),(81,48,'2026-04-21 02:02:53',3182,'Success'),(82,23,'2026-05-05 05:03:53',671,'Partial'),(83,11,'2026-06-11 19:47:53',4528,'Failed'),(84,11,'2026-06-17 05:13:53',1021,'Success'),(85,47,'2026-08-16 19:07:53',2784,'Success'),(86,87,'2026-06-03 04:00:53',2298,'Success'),(87,91,'2026-03-25 07:25:53',4499,'Partial'),(88,2,'2026-06-11 02:27:53',2889,'Partial'),(89,52,'2026-03-30 16:19:53',3916,'Failed'),(90,66,'2026-07-19 00:05:53',1908,'Failed'),(91,96,'2026-07-03 21:05:53',4275,'Failed'),(92,71,'2026-04-28 12:27:53',3829,'Partial'),(93,11,'2026-06-07 05:52:53',3471,'Success'),(94,57,'2026-05-02 19:18:53',3119,'Success'),(95,74,'2026-07-25 02:32:53',129,'Partial'),(96,85,'2026-05-28 02:05:53',3483,'Partial'),(97,88,'2026-05-14 13:45:53',2504,'Partial'),(98,76,'2026-08-20 17:29:53',313,'Success'),(99,20,'2026-06-02 17:39:53',4989,'Failed'),(100,74,'2026-05-18 00:06:53',3250,'Success');
+/*!40000 ALTER TABLE `threat_feeds` ENABLE KEYS */;
+UNLOCK TABLES;
+/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
+
+/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
+/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
+/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
+
+-- Dump completed on 2026-08-26 16:07:05

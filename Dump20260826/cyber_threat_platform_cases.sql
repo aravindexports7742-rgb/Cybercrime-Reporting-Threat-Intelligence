@@ -1,0 +1,63 @@
+-- MySQL dump 10.13  Distrib 8.0.46, for Win64 (x86_64)
+--
+-- Host: localhost    Database: cyber_threat_platform
+-- ------------------------------------------------------
+-- Server version	8.0.46
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!50503 SET NAMES utf8 */;
+/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
+/*!40103 SET TIME_ZONE='+00:00' */;
+/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
+/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
+/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
+/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+
+--
+-- Table structure for table `cases`
+--
+
+DROP TABLE IF EXISTS `cases`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `cases` (
+  `case_id` int NOT NULL AUTO_INCREMENT,
+  `case_reference` varchar(30) NOT NULL,
+  `complaint_id` int NOT NULL,
+  `lead_officer_id` int DEFAULT NULL,
+  `priority` enum('Low','Medium','High','Critical') NOT NULL DEFAULT 'Medium',
+  `status` enum('New','Under Review','Assigned','Investigation','Pending External Response','Action Taken','Resolved','Closed') NOT NULL DEFAULT 'New',
+  `opened_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `closed_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`case_id`),
+  UNIQUE KEY `case_reference` (`case_reference`),
+  KEY `complaint_id` (`complaint_id`),
+  KEY `lead_officer_id` (`lead_officer_id`),
+  KEY `idx_cases_status` (`status`),
+  CONSTRAINT `cases_ibfk_1` FOREIGN KEY (`complaint_id`) REFERENCES `complaints` (`complaint_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `cases_ibfk_2` FOREIGN KEY (`lead_officer_id`) REFERENCES `users` (`user_id`) ON DELETE SET NULL ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=101 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `cases`
+--
+
+LOCK TABLES `cases` WRITE;
+/*!40000 ALTER TABLE `cases` DISABLE KEYS */;
+INSERT INTO `cases` VALUES (1,'CASE92423989',73,7,'Medium','Pending External Response','2025-12-13 22:23:53',NULL),(2,'CASE18184472',75,50,'Low','Pending External Response','2026-02-11 07:53:53',NULL),(3,'CASE80573568',7,84,'Medium','New','2026-02-11 13:57:53',NULL),(4,'CASE75052579',19,73,'High','Action Taken','2026-02-09 04:08:53',NULL),(5,'CASE90143600',47,32,'Medium','New','2026-04-05 10:28:53',NULL),(6,'CASE57973830',16,71,'Medium','Assigned','2026-07-06 04:37:53',NULL),(7,'CASE81630600',37,29,'Low','Investigation','2025-11-04 23:57:53',NULL),(8,'CASE41749355',91,15,'High','Action Taken','2026-08-11 13:35:53',NULL),(9,'CASE85645982',27,77,'Medium','Investigation','2025-12-16 19:00:53',NULL),(10,'CASE15095407',91,50,'Low','New','2026-04-28 17:05:53',NULL),(11,'CASE74154596',44,71,'Low','Action Taken','2026-05-15 07:58:53',NULL),(12,'CASE53431355',69,15,'Low','New','2026-06-11 17:34:53',NULL),(13,'CASE80638102',54,10,'High','Under Review','2026-02-15 13:37:53',NULL),(14,'CASE23560308',42,77,'High','Pending External Response','2026-03-14 08:09:53',NULL),(15,'CASE95800828',72,40,'Critical','Action Taken','2026-05-28 13:44:53',NULL),(16,'CASE57892314',56,80,'Medium','Assigned','2026-02-14 02:33:53',NULL),(17,'CASE27092408',56,31,'Medium','New','2025-11-05 23:25:53',NULL),(18,'CASE14346338',93,77,'Medium','Action Taken','2026-05-04 15:43:53',NULL),(19,'CASE28876833',12,50,'High','Under Review','2026-04-27 00:59:53',NULL),(20,'CASE21908603',83,84,'High','Closed','2026-08-21 04:06:53','2026-09-06 04:06:53'),(21,'CASE57040785',56,9,'High','Under Review','2026-08-26 10:55:53',NULL),(22,'CASE66324902',95,98,'Medium','Resolved','2025-12-16 23:57:53','2026-01-20 23:57:53'),(23,'CASE74355957',36,10,'Medium','Assigned','2026-01-07 09:28:53',NULL),(24,'CASE12694823',52,31,'High','Pending External Response','2026-07-04 09:58:53',NULL),(25,'CASE31596235',83,37,'Low','Under Review','2026-03-05 16:40:53',NULL),(26,'CASE14159837',19,95,'Critical','Assigned','2026-01-16 07:16:53',NULL),(27,'CASE37588517',11,32,'Medium','Resolved','2025-11-15 12:20:53','2026-01-01 12:20:53'),(28,'CASE98663948',64,29,'High','Pending External Response','2026-04-27 09:16:53',NULL),(29,'CASE83774469',42,77,'Critical','Assigned','2026-07-30 01:19:53',NULL),(30,'CASE49533757',74,9,'Critical','Investigation','2026-07-08 12:06:53',NULL),(31,'CASE49166271',83,84,'Low','Closed','2026-06-28 02:29:53','2026-07-24 02:29:53'),(32,'CASE98723294',16,50,'High','Under Review','2025-11-21 00:08:53',NULL),(33,'CASE59580252',30,37,'Medium','Closed','2026-08-04 03:51:53','2026-09-03 03:51:53'),(34,'CASE46045780',45,27,'Low','Assigned','2026-07-08 09:37:53',NULL),(35,'CASE65564347',26,73,'Medium','New','2026-02-08 19:53:53',NULL),(36,'CASE73729850',49,92,'Medium','Closed','2026-03-26 09:54:53','2026-05-23 09:54:53'),(37,'CASE77390918',69,7,'Medium','Under Review','2026-01-09 07:09:53',NULL),(38,'CASE26936398',15,25,'Low','Resolved','2026-07-16 14:52:53','2026-07-29 14:52:53'),(39,'CASE89865944',90,12,'High','Action Taken','2026-07-23 09:55:53',NULL),(40,'CASE84095459',77,37,'High','Pending External Response','2025-12-02 21:21:53',NULL),(41,'CASE93625419',22,95,'Critical','Under Review','2026-01-26 08:10:53',NULL),(42,'CASE88205594',92,77,'Low','Under Review','2025-11-11 08:29:53',NULL),(43,'CASE56153339',57,73,'Critical','Pending External Response','2026-02-10 15:48:53',NULL),(44,'CASE73491242',102,80,'Low','Assigned','2026-04-07 00:10:53',NULL),(45,'CASE63917932',80,80,'Low','Resolved','2026-03-09 14:04:53','2026-03-13 14:04:53'),(46,'CASE46048781',86,50,'High','New','2026-03-07 03:00:53',NULL),(47,'CASE23182514',55,50,'Medium','Assigned','2026-03-25 12:51:53',NULL),(48,'CASE46160937',97,32,'Critical','Under Review','2026-05-21 22:06:53',NULL),(49,'CASE75023164',62,98,'High','New','2025-12-06 07:15:53',NULL),(50,'CASE78020910',82,95,'Critical','Assigned','2025-11-30 18:18:53',NULL),(51,'CASE36941091',91,25,'Low','Investigation','2026-08-09 22:16:53',NULL),(52,'CASE36724061',28,95,'High','Action Taken','2025-12-31 19:54:53',NULL),(53,'CASE14102122',94,10,'Medium','Action Taken','2025-12-18 16:51:53',NULL),(54,'CASE88769733',91,50,'High','Action Taken','2026-06-04 03:32:53',NULL),(55,'CASE48261364',56,9,'Low','Resolved','2026-08-01 06:25:53','2026-09-07 06:25:53'),(56,'CASE39709238',97,25,'Medium','Investigation','2026-04-10 15:53:53',NULL),(57,'CASE11194267',32,5,'Critical','Assigned','2026-05-29 16:28:53',NULL),(58,'CASE43875271',22,27,'High','Pending External Response','2026-01-21 23:25:53',NULL),(59,'CASE43822694',26,47,'Medium','Closed','2026-03-24 14:46:53','2026-05-16 14:46:53'),(60,'CASE88448538',80,37,'Low','New','2025-12-07 14:26:53',NULL),(61,'CASE96884788',30,73,'High','Pending External Response','2026-07-01 21:15:53',NULL),(62,'CASE95979171',14,29,'High','Pending External Response','2026-04-14 15:34:53',NULL),(63,'CASE35281262',8,31,'Medium','Investigation','2026-07-27 16:54:53',NULL),(64,'CASE28781020',24,32,'Low','Closed','2026-03-28 03:21:53','2026-04-24 03:21:53'),(65,'CASE14740436',58,37,'Medium','Action Taken','2026-05-04 14:45:53',NULL),(66,'CASE58116670',94,50,'High','Assigned','2025-11-14 07:01:53',NULL),(67,'CASE27172371',11,50,'High','Assigned','2026-03-07 16:14:53',NULL),(68,'CASE39974566',21,35,'High','Resolved','2026-03-10 01:03:53','2026-04-17 01:03:53'),(69,'CASE25808361',59,47,'Critical','New','2025-10-31 17:40:53',NULL),(70,'CASE36111227',79,50,'Low','Resolved','2025-11-28 02:53:53','2025-12-02 02:53:53'),(71,'CASE36883353',73,12,'High','Resolved','2025-11-07 22:10:53','2025-11-28 22:10:53'),(72,'CASE20846331',69,15,'Critical','Action Taken','2026-05-28 01:39:53',NULL),(73,'CASE70673557',65,5,'High','Investigation','2026-05-31 17:31:53',NULL),(74,'CASE21816709',81,50,'Medium','Resolved','2026-01-18 23:52:53','2026-02-18 23:52:53'),(75,'CASE15063406',40,5,'Medium','Action Taken','2026-08-19 01:31:53',NULL),(76,'CASE12404661',38,25,'Low','Investigation','2026-05-02 13:23:53',NULL),(77,'CASE27304799',26,31,'Low','Resolved','2025-12-11 18:00:53','2025-12-22 18:00:53'),(78,'CASE50024028',76,7,'High','Closed','2025-12-02 16:46:53','2025-12-24 16:46:53'),(79,'CASE27956913',89,92,'High','Closed','2026-02-24 06:09:53','2026-04-24 06:09:53'),(80,'CASE40657783',58,5,'Medium','Assigned','2026-05-09 13:18:53',NULL),(81,'CASE32680748',20,71,'Low','Action Taken','2026-08-06 23:23:53',NULL),(82,'CASE81770706',94,29,'Low','New','2026-07-01 15:26:53',NULL),(83,'CASE25541047',44,7,'Critical','Closed','2026-02-13 08:44:53','2026-03-02 08:44:53'),(84,'CASE30552371',16,95,'Medium','New','2026-03-24 22:37:53',NULL),(85,'CASE79834723',11,92,'High','Assigned','2026-01-24 08:47:53',NULL),(86,'CASE25802066',70,80,'High','Under Review','2026-07-02 21:07:53',NULL),(87,'CASE45298445',63,25,'Medium','Action Taken','2026-01-29 03:09:53',NULL),(88,'CASE76619601',53,73,'Medium','Closed','2026-03-10 05:19:53','2026-03-11 05:19:53'),(89,'CASE24821786',29,9,'Critical','Assigned','2026-07-10 20:15:53',NULL),(90,'CASE23594977',70,98,'High','Investigation','2026-01-05 03:03:53',NULL),(91,'CASE23396125',105,7,'Medium','New','2026-03-31 00:28:53',NULL),(92,'CASE67176108',48,32,'Low','Under Review','2026-08-03 11:25:53',NULL),(93,'CASE96865529',46,92,'Medium','Action Taken','2026-02-23 21:40:53',NULL),(94,'CASE22475714',50,98,'High','Action Taken','2026-05-25 08:54:53',NULL),(95,'CASE46484819',58,47,'Critical','Closed','2026-01-22 15:23:53','2026-03-15 15:23:53'),(96,'CASE27785402',83,10,'Low','Assigned','2026-07-03 22:21:53',NULL),(97,'CASE86362294',20,50,'Critical','Assigned','2026-02-13 00:40:53',NULL),(98,'CASE27536261',47,92,'Critical','Closed','2026-06-29 22:51:53','2026-07-02 22:51:53'),(99,'CASE97909064',76,29,'High','New','2025-11-30 12:43:53',NULL),(100,'CASE40062746',70,77,'High','Under Review','2026-01-16 14:33:53',NULL);
+/*!40000 ALTER TABLE `cases` ENABLE KEYS */;
+UNLOCK TABLES;
+/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
+
+/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
+/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
+/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
+
+-- Dump completed on 2026-08-26 16:07:04
