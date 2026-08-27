@@ -3,154 +3,331 @@ import requests
 
 API_URL = "http://127.0.0.1:8000"
 
-st.set_page_config(page_title="Cyber Platform", layout="wide", initial_sidebar_state="expanded")
+st.set_page_config(
+    page_title="CyberShield Platform",
+    page_icon=":material/shield:",
+    layout="wide",
+    initial_sidebar_state="expanded",
+)
 
-# Injecting Custom CSS for a better design
-st.markdown("""
-<style>
-    /* Global Font and styling */
-    html, body, [class*="css"] {
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    }
-    /* Headers */
-    h1, h2, h3, h4, h5, h6 {
-        color: #1e3a8a !important; /* Dark Blue */
-    }
-    /* Buttons */
-    .stButton>button {
-        background-color: #2563eb !important;
-        color: white !important;
-        border-radius: 8px !important;
-        border: none !important;
-        padding: 10px 24px !important;
-        font-weight: 600 !important;
-        transition: all 0.3s ease !important;
-    }
-    .stButton>button:hover {
-        background-color: #1d4ed8 !important;
-        transform: translateY(-2px);
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    }
-    /* Form input styling */
-    .stTextInput>div>div>input, .stSelectbox>div>div>div, .stTextArea>div>textarea, .stNumberInput>div>div>input {
-        border-radius: 6px !important;
-        border: 1px solid #d1d5db !important;
-        padding: 8px 12px !important;
-    }
-    /* Expander styling */
-    .streamlit-expanderHeader {
-        background-color: #f3f4f6 !important;
-        border-radius: 8px !important;
-        font-weight: bold !important;
-    }
-    /* Tabs styling */
-    .stTabs [data-baseweb="tab-list"] {
-        gap: 15px;
-    }
-    .stTabs [data-baseweb="tab"] {
-        height: 50px;
-        white-space: pre-wrap;
-        background-color: transparent;
-        border-radius: 6px 6px 0 0;
-        padding: 10px 20px;
-        font-weight: 600;
-    }
-    .stTabs [aria-selected="true"] {
-        background-color: #e0f2fe !important;
-        border-bottom: 3px solid #0284c7 !important;
-        color: #0284c7 !important;
-    }
-    /* Success/Error banners */
-    .stAlert {
-        border-radius: 8px !important;
-    }
-    /* Background for main container */
-    .main {
-        background-color: #fafafa;
-    }
-    /* Footer or extra */
-    .css-1v3fvcr {
-        padding-top: 2rem;
-    }
-</style>
-""", unsafe_allow_html=True)
+# ── Session state initialisation ──────────────────────────────────────────────
 if "token" not in st.session_state:
     st.session_state["token"] = None
 if "role" not in st.session_state:
     st.session_state["role"] = None
 
+# ── Auth helpers ──────────────────────────────────────────────────────────────
 def login(email, password):
-    response = requests.post(f"{API_URL}/auth/login", data={"username": email, "password": password})
+    response = requests.post(
+        f"{API_URL}/auth/login",
+        data={"username": email, "password": password},
+    )
     if response.status_code == 200:
         data = response.json()
         st.session_state["token"] = data["access_token"]
         st.session_state["role"] = data.get("role", "Victim")
-        st.success("Logged in successfully!")
+        st.toast("Logged in successfully!", icon=":material/check_circle:")
         st.rerun()
     else:
-        st.error("Login failed. Check credentials.")
+        st.error("Login failed. Check your credentials.", icon=":material/error:")
 
+ROLE_META = {
+    "Victim":             {"icon": ":material/shield_person:",          "color": "blue"},
+    "Officer":            {"icon": ":material/local_police:",           "color": "orange"},
+    "Threat Analyst":     {"icon": ":material/radar:",                  "color": "violet"},
+    "Incident Responder": {"icon": ":material/emergency:",              "color": "red"},
+    "Administrator":      {"icon": ":material/admin_panel_settings:",   "color": "green"},
+}
+
+# ══════════════════════════════════════════════════════════════════════════════
+# NOT LOGGED IN — Hero login page
+# ══════════════════════════════════════════════════════════════════════════════
 if st.session_state["token"] is None:
-    st.markdown("<h1 style='text-align: center;'>Cyber Crime & Threat Intelligence Platform</h1>", unsafe_allow_html=True)
-    st.markdown("<p style='text-align: center; color: #6b7280; margin-bottom: 2rem;'>Securely report and analyze cyber incidents.</p>", unsafe_allow_html=True)
-    
-    col_spacer1, col_main, col_spacer2 = st.columns([1, 2, 1])
+
+    # Login-only visual treatment: an abstract SOC backdrop with a readable
+    # glass panel. It is scoped to this unauthenticated branch, so the working
+    # dashboard keeps its normal dark theme after sign-in.
+    st.markdown(
+        """
+        <style>
+        .stApp {
+            background-color: #06111f;
+            background-image:
+                radial-gradient(circle at 12% 18%, rgba(37, 99, 235, .28), transparent 28%),
+                radial-gradient(circle at 88% 82%, rgba(14, 165, 233, .20), transparent 30%),
+                linear-gradient(rgba(96, 165, 250, .055) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(96, 165, 250, .055) 1px, transparent 1px),
+                linear-gradient(135deg, #06111f 0%, #0b1b31 48%, #071525 100%);
+            background-size: auto, auto, 42px 42px, 42px 42px, auto;
+            background-attachment: fixed;
+        }
+
+        .stApp::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            background:
+                linear-gradient(115deg, transparent 0 42%, rgba(56, 189, 248, .045) 42.2%, transparent 42.5%),
+                linear-gradient(295deg, transparent 0 64%, rgba(167, 139, 250, .04) 64.2%, transparent 64.5%);
+            opacity: .9;
+        }
+
+        [data-testid="stHeader"] { background: transparent; }
+        .block-container {
+            max-width: 1280px;
+            padding-top: 2.5rem;
+            padding-bottom: 3rem;
+        }
+        [data-testid="stSidebar"] {
+            background: rgba(3, 12, 24, .76);
+            border-right: 1px solid rgba(96, 165, 250, .14);
+        }
+
+        /* The centered login card reads as frosted glass over the backdrop. */
+        div[data-testid="stVerticalBlockBorderWrapper"] {
+            background: rgba(8, 24, 43, .78);
+            border-color: rgba(125, 211, 252, .23);
+            box-shadow: 0 24px 80px rgba(0, 0, 0, .30), 0 0 0 1px rgba(255, 255, 255, .025) inset;
+            backdrop-filter: blur(16px);
+            padding: .8rem;
+        }
+
+        [data-testid="stMarkdownContainer"] h1 {
+            font-size: clamp(2.25rem, 4vw, 3.4rem);
+            letter-spacing: -.03em;
+            text-shadow: 0 0 28px rgba(96, 165, 250, .20);
+        }
+
+        [data-testid="stTextInput"] input,
+        [data-testid="stSelectbox"] [role="combobox"] {
+            min-height: 3rem;
+            font-size: 1.02rem;
+        }
+        [data-testid="stButton"] button,
+        [data-testid="stFormSubmitButton"] button {
+            min-height: 3rem;
+            font-size: 1.02rem;
+        }
+
+        @media (max-width: 640px) {
+            .stApp { background-size: auto, auto, 28px 28px, 28px 28px, auto; }
+            .block-container { padding: 1.5rem 1rem 2rem; }
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    with st.sidebar:
+        st.markdown("### :material/shield: CyberShield")
+        st.caption("Cybercrime Reporting & Threat Intelligence Platform")
+        st.divider()
+        st.caption("🔒 All data is encrypted in transit.")
+        st.caption("📍 For law enforcement and public use.")
+
+    with st.container(horizontal_alignment="center"):
+        st.space("large")
+        st.badge("SECURE PLATFORM", icon=":material/verified_user:", color="blue")
+        st.title("Cybercrime & Threat Intelligence", text_alignment="center")
+        st.caption(
+            "Report cybercrime incidents, track your cases, and help analysts protect the digital ecosystem.",
+            text_alignment="center",
+        )
+        st.caption(":material/shield_lock: Trusted reporting • encrypted access • secure case tracking", text_alignment="center")
+        st.space("medium")
+
+    col_left, col_main, col_right = st.columns([1, 2, 1])
     with col_main:
-        tab1, tab2 = st.tabs(["🔐 Login", "📝 Register"])
-        
-        with tab1:
-            st.markdown("### Welcome Back")
-            email = st.text_input("Email")
-            password = st.text_input("Password", type="password")
-            if st.button("Login", use_container_width=True):
-                login(email, password)
-                
-        with tab2:
-            st.markdown("### Create an Account")
-            with st.form("register_form"):
-                reg_name = st.text_input("Full Name")
-                reg_email = st.text_input("Email")
-                reg_phone = st.text_input("Phone Number")
-                reg_password = st.text_input("Password", type="password")
-                reg_role = st.selectbox("Role", ["Victim", "Officer", "Threat Analyst", "Incident Responder", "Administrator"])
-                
-                if st.form_submit_button("Register", use_container_width=True):
-                    payload = {
-                        "full_name": reg_name,
-                        "email": reg_email,
-                        "phone_number": reg_phone,
-                        "password": reg_password,
-                        "role_name": reg_role
-                    }
-                    res = requests.post(f"{API_URL}/auth/register", json=payload)
-                    if res.status_code == 200:
-                        st.success("Registered successfully! You can now log in.")
-                    else:
-                        st.error(f"Registration failed: {res.text}")
+        with st.container(border=True):
+            tab_login, tab_register = st.tabs([
+                ":material/login: Sign in",
+                ":material/person_add: Register",
+            ])
+
+            with tab_login:
+                st.space("small")
+                email    = st.text_input("Email address", placeholder="you@example.com")
+                password = st.text_input("Password", type="password", placeholder="••••••••")
+                st.space("small")
+                if st.button("Sign in", icon=":material/login:", type="primary"):
+                    login(email, password)
+
+            with tab_register:
+                st.space("small")
+                with st.form("register_form", clear_on_submit=True):
+                    reg_name  = st.text_input("Full name",     placeholder="Jane Smith")
+                    reg_email = st.text_input("Email address", placeholder="you@example.com")
+                    reg_phone = st.text_input("Phone number",  placeholder="+91 98765 43210")
+                    reg_pass  = st.text_input("Password",      type="password", placeholder="••••••••")
+                    reg_role  = st.selectbox(
+                        "I am a",
+                        ["Victim", "Officer", "Threat Analyst", "Incident Responder", "Administrator"],
+                    )
+                    st.space("small")
+                    if st.form_submit_button("Create account", icon=":material/person_add:", type="primary"):
+                        payload = {
+                            "full_name":    reg_name,
+                            "email":        reg_email,
+                            "phone_number": reg_phone,
+                            "password":     reg_pass,
+                            "role_name":    reg_role,
+                        }
+                        res = requests.post(f"{API_URL}/auth/register", json=payload)
+                        if res.status_code == 200:
+                            st.success("Account created! You can now sign in.", icon=":material/check_circle:")
+                        else:
+                            st.error(f"Registration failed: {res.text}", icon=":material/error:")
+
+# ══════════════════════════════════════════════════════════════════════════════
+# LOGGED IN — Role-based st.navigation
+# ══════════════════════════════════════════════════════════════════════════════
 else:
-    col_title, col_logout = st.columns([4, 1])
-    with col_title:
-        st.markdown(f"<h2>Welcome to the Platform <span style='color: #6b7280; font-size: 1rem;'>(Role: {st.session_state['role']})</span></h2>", unsafe_allow_html=True)
-    with col_logout:
-        st.markdown("<br>", unsafe_allow_html=True)
-        if st.button("Logout", use_container_width=True):
+    role = st.session_state["role"]
+    meta = ROLE_META.get(role, {"icon": ":material/person:", "color": "gray"})
+
+    # Shared dashboard chrome. Keeping this in the app shell gives every role
+    # the same visual language while leaving each page free to focus on its
+    # own workflow.
+    st.markdown(
+        """
+        <style>
+        .stApp {
+            background-color: #08111f;
+            background-image:
+                radial-gradient(circle at 92% 4%, rgba(37, 99, 235, .13), transparent 24%),
+                radial-gradient(circle at 4% 96%, rgba(14, 165, 233, .08), transparent 22%),
+                linear-gradient(rgba(96, 165, 250, .028) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(96, 165, 250, .028) 1px, transparent 1px),
+                linear-gradient(135deg, #08111f 0%, #0b1728 52%, #07101d 100%);
+            background-size: auto, auto, 48px 48px, 48px 48px, auto;
+            background-attachment: fixed;
+        }
+        .block-container {
+            max-width: 1760px;
+            padding-top: 2rem;
+            padding-bottom: 3rem;
+            padding-left: 3rem;
+            padding-right: 3rem;
+        }
+        [data-testid="stHeader"] { background: rgba(8, 17, 31, .72); }
+        [data-testid="stSidebar"] {
+            background: rgba(5, 14, 27, .88);
+            border-right: 1px solid rgba(96, 165, 250, .12);
+        }
+        [data-testid="stSidebarNav"] { padding-top: .65rem; }
+        [data-testid="stSidebarNav"] li a {
+            border-radius: 9px;
+            margin: 2px 8px;
+            transition: background .2s ease, transform .2s ease;
+        }
+        [data-testid="stSidebarNav"] li a:hover {
+            background: rgba(96, 165, 250, .10);
+            transform: translateX(2px);
+        }
+        div[data-testid="stVerticalBlockBorderWrapper"] {
+            background: linear-gradient(145deg, rgba(17, 37, 62, .82), rgba(9, 23, 40, .74));
+            border-color: rgba(125, 211, 252, .14);
+            box-shadow: 0 14px 38px rgba(0, 0, 0, .16), 0 0 0 1px rgba(255, 255, 255, .018) inset;
+            backdrop-filter: blur(12px);
+            padding: .9rem;
+        }
+        [data-testid="stMetric"] {
+            background: rgba(15, 35, 58, .62);
+            border: 1px solid rgba(125, 211, 252, .10);
+            border-radius: 10px;
+            padding: 12px 14px;
+        }
+        [data-testid="stMetricValue"] {
+            letter-spacing: -.04em;
+            font-size: 2rem;
+        }
+        [data-testid="stMetricLabel"] { font-size: .95rem; }
+        [data-testid="stExpander"] {
+            border-color: rgba(125, 211, 252, .12);
+            background: rgba(9, 25, 43, .44);
+            border-radius: 10px;
+        }
+        [data-testid="stMarkdownContainer"] h2 { font-size: 1.75rem; }
+        [data-testid="stMarkdownContainer"] h3 { font-size: 1.35rem; }
+        [data-testid="stCaptionContainer"] { font-size: .95rem; }
+        @media (max-width: 900px) {
+            .block-container { padding-left: 1.5rem; padding-right: 1.5rem; }
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    # Build pages list dynamically based on role
+    if role == "Victim":
+        pages = {
+            "My Portal": [
+                st.Page("app_pages/victim_complaints.py",      title="My complaints",    icon=":material/folder_open:"),
+                st.Page("app_pages/victim_new_complaint.py",   title="New complaint",    icon=":material/add_circle:"),
+                st.Page("app_pages/victim_notifications.py",   title="Notifications",    icon=":material/notifications:"),
+            ]
+        }
+    elif role == "Officer":
+        pages = {
+            "Case Management": [
+                st.Page("app_pages/officer_cases.py",      title="Active cases",         icon=":material/folder_open:"),
+                st.Page("app_pages/officer_complaints.py", title="All complaints",        icon=":material/list_alt:"),
+                st.Page("app_pages/officer_suspects.py",   title="Suspects",              icon=":material/person_search:"),
+                st.Page("app_pages/officer_coord.py",      title="Agency coordination",   icon=":material/handshake:"),
+            ]
+        }
+    elif role == "Threat Analyst":
+        pages = {
+            "Threat Intelligence": [
+                st.Page("app_pages/ti_overview.py",     title="Overview",            icon=":material/dashboard:"),
+                st.Page("app_pages/ti_ioc_search.py",   title="IOC search",          icon=":material/search:"),
+                st.Page("app_pages/ti_feeds.py",        title="Threat feeds",        icon=":material/rss_feed:"),
+                st.Page("app_pages/ti_highrisk.py",     title="High-risk IOCs",      icon=":material/warning:"),
+                st.Page("app_pages/ti_campaigns.py",    title="Campaigns",           icon=":material/hub:"),
+                st.Page("app_pages/ti_trends.py",       title="Trends",              icon=":material/trending_up:"),
+                st.Page("app_pages/ti_forecast.py",     title="Forecast",            icon=":material/auto_graph:"),
+            ]
+        }
+    else:  # Administrator / Incident Responder
+        pages = {
+            "Operations": [
+                st.Page("app_pages/admin_overview.py",   title="Overview",            icon=":material/dashboard:"),
+                st.Page("app_pages/admin_complaints.py", title="All complaints",       icon=":material/list_alt:"),
+                st.Page("app_pages/admin_incidents.py",  title="Active incidents",     icon=":material/emergency:"),
+                st.Page("app_pages/admin_playbooks.py",  title="Playbooks",            icon=":material/menu_book:"),
+            ],
+            "Administration": [
+                st.Page("app_pages/admin_users.py",      title="Users",               icon=":material/group:"),
+                st.Page("app_pages/admin_roles.py",      title="Roles",               icon=":material/badge:"),
+                st.Page("app_pages/admin_audit.py",      title="Audit logs",          icon=":material/history:"),
+                st.Page("app_pages/admin_login.py",      title="Login activity",      icon=":material/login:"),
+                st.Page("app_pages/admin_health.py",     title="System health",       icon=":material/monitor_heart:"),
+            ],
+        }
+
+    pg = st.navigation(pages, position="sidebar")
+
+    # Sidebar shared elements
+    with st.sidebar:
+        st.markdown("### :material/shield: CyberShield")
+        st.caption("Operations workspace")
+        st.divider()
+        st.markdown("**Signed in as**")
+        st.badge(role, icon=meta["icon"], color=meta["color"])
+        st.space("small")
+        if st.button("Sign out", icon=":material/logout:", type="secondary"):
             st.session_state["token"] = None
-            st.session_state["role"] = None
+            st.session_state["role"]  = None
+            st.toast("Signed out.", icon=":material/logout:")
             st.rerun()
-            
-    st.markdown("---")
-    
-    if st.session_state["role"] == "Victim":
-        from pages import victim
-        victim.render()
-    elif st.session_state["role"] == "Officer":
-        from pages import officer
-        officer.render()
-    elif st.session_state["role"] == "Threat Analyst":
-        from pages import threat_intel
-        threat_intel.render()
-    elif st.session_state["role"] in ["Administrator", "Incident Responder"]:
-        from pages import admin
-        admin.render()
-    else:
-        st.write("Navigation to sectors based on role will go here.")
+        st.divider()
+        st.caption("CyberShield v1.0 • Secure")
+
+    with st.container(horizontal=True, vertical_alignment="center"):
+        with st.container():
+            st.markdown("### :material/radar: CyberShield command center")
+            st.caption("Monitor reports, coordinate response, and turn intelligence into action.")
+        st.badge(role, icon=meta["icon"], color=meta["color"])
+
+    pg.run()
