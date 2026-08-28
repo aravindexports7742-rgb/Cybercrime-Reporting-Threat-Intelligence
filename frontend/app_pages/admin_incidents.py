@@ -17,7 +17,32 @@ with st.skeleton(height=300):
 if res.status_code == 200:
     incidents = res.json()
     if incidents:
-        st.dataframe(pd.DataFrame(incidents), hide_index=True)
+        for incident in incidents:
+            with st.expander(f"{incident['incident_reference']} — {incident['status']}", icon=":material/emergency:"):
+                st.caption(f"Detected: {str(incident['detected_at'])[:16]} · Severity: {incident['severity']}")
+                st.markdown(f"**Type:** {incident['incident_type']}")
+                if incident.get("case_id"):
+                    st.markdown(f"**Linked case:** {incident['case_id']}")
+                st.markdown(f"**Current details:** {incident.get('description') or 'No details recorded.'}")
+                with st.form(f"incident_update_{incident['incident_id']}"):
+                    c1, c2 = st.columns(2)
+                    statuses = ["Detected", "Triage", "Investigating", "Containing", "Remediating", "Recovering", "Resolved", "Closed"]
+                    severities = ["Low", "Medium", "High", "Critical"]
+                    with c1:
+                        status = st.selectbox("Response stage", statuses, index=statuses.index(incident['status']))
+                    with c2:
+                        severity = st.selectbox("Severity", severities, index=severities.index(incident['severity']))
+                    details = st.text_area("Progress update / response details", value=incident.get('description') or "", placeholder="Containment completed; affected access disabled. Next: validate recovery.")
+                    if st.form_submit_button("Save incident progress", icon=":material/save:", type="primary"):
+                        update = requests.put(
+                            f"{API_URL}/admin/incidents/{incident['incident_id']}", headers=get_headers(),
+                            json={"status": status, "severity": severity, "description": details},
+                        )
+                        if update.status_code == 200:
+                            st.toast("Incident progress saved.", icon=":material/check_circle:")
+                            st.rerun()
+                        else:
+                            st.error(f"Could not update incident: {update.text}", icon=":material/error:")
     else:
         st.info("No incidents found.", icon=":material/info:")
 else:

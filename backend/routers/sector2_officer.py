@@ -5,9 +5,9 @@ from typing import List
 from backend.database.connection import get_db
 from backend.models.shared_models import User
 from backend.models.sector1_victim import Complaint, Evidence, Notification
-from backend.models.sector2_officer import Case, InvestigationNote, Suspect, ChainOfCustody, AgencyCoordination, EvidenceAccessHistory
+from backend.models.sector2_officer import Case, InvestigationNote, InvestigationActivity, Suspect, ChainOfCustody, AgencyCoordination, EvidenceAccessHistory
 from backend.models.sector4_admin import AuditLog, Incident
-from backend.schemas.sector2_officer import CaseResponse, CaseUpdate, InvestigationNoteCreate, InvestigationNoteResponse, SuspectCreate, SuspectResponse, CustodyEventCreate, CustodyEventResponse, AgencyCoordinationCreate, AgencyCoordinationResponse
+from backend.schemas.sector2_officer import CaseResponse, CaseUpdate, InvestigationNoteCreate, InvestigationNoteResponse, InvestigationActivityCreate, InvestigationActivityResponse, SuspectCreate, SuspectResponse, CustodyEventCreate, CustodyEventResponse, AgencyCoordinationCreate, AgencyCoordinationResponse
 from backend.security.auth import get_current_user
 from backend.security.rbac import get_role_checker
 import datetime
@@ -40,6 +40,13 @@ def update_case(case_id: int, updates: CaseUpdate, db: Session = Depends(get_db)
         case.priority = updates.priority
     if updates.status:
         case.status = updates.status
+    if old_status != case.status or old_priority != case.priority:
+        db.add(InvestigationActivity(
+            case_id=case.case_id,
+            officer_id=current_user.user_id,
+            action="Case status/priority updated",
+            result=f"Status: {old_status} -> {case.status}; priority: {old_priority} -> {case.priority}",
+        ))
         
     db.commit()
     db.refresh(case)
@@ -50,6 +57,9 @@ def update_case(case_id: int, updates: CaseUpdate, db: Session = Depends(get_db)
         if complaint:
             # Map statuses (Simplified mapping)
             complaint_status_map = {
+                "New": "Submitted",
+                "Under Review": "Under Review",
+                "Assigned": "Assigned",
                 "Investigation": "Investigation",
                 "Action Taken": "Action Taken",
                 "Resolved": "Resolved",
@@ -99,6 +109,8 @@ def update_case(case_id: int, updates: CaseUpdate, db: Session = Depends(get_db)
 
 @router.post("/{case_id}/investigations", response_model=InvestigationNoteResponse, dependencies=[Depends(allow_officer)])
 def add_investigation_note(case_id: int, note: InvestigationNoteCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    if not db.query(Case).filter(Case.case_id == case_id).first():
+        raise HTTPException(status_code=404, detail="Case not found")
     new_note = InvestigationNote(
         case_id=case_id,
         officer_id=current_user.user_id,
@@ -108,6 +120,22 @@ def add_investigation_note(case_id: int, note: InvestigationNoteCreate, db: Sess
     db.commit()
     db.refresh(new_note)
     return new_note
+
+@router.get("/{case_id}/activities", response_model=List[InvestigationActivityResponse], dependencies=[Depends(allow_officer)])
+def get_investigation_activities(case_id: int, db: Session = Depends(get_db)):
+    if not db.query(Case).filter(Case.case_id == case_id).first():
+        raise HTTPException(status_code=404, detail="Case not found")
+    return db.query(InvestigationActivity).filter(InvestigationActivity.case_id == case_id).order_by(InvestigationActivity.activity_date.desc()).all()
+
+@router.post("/{case_id}/activities", response_model=InvestigationActivityResponse, dependencies=[Depends(allow_officer)])
+def add_investigation_activity(case_id: int, activity: InvestigationActivityCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    if not db.query(Case).filter(Case.case_id == case_id).first():
+        raise HTTPException(status_code=404, detail="Case not found")
+    new_activity = InvestigationActivity(case_id=case_id, officer_id=current_user.user_id, action=activity.action, result=activity.result)
+    db.add(new_activity)
+    db.commit()
+    db.refresh(new_activity)
+    return new_activity
 
 @router.get("/{case_id}/evidence", dependencies=[Depends(allow_officer)])
 def get_case_evidence(case_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):

@@ -130,5 +130,38 @@ if response.status_code == 200:
                                 st.error(f"Failed: {res.text}", icon=":material/error:")
                         else:
                             st.warning("Note cannot be empty.", icon=":material/warning:")
+
+                with st.container(border=True):
+                    st.markdown("**:material/task_alt: Investigation activity & outcome**")
+                    st.caption("Record the concrete work completed and its result. This becomes the case progress history.")
+                    with st.form(f"activity_form_{c['case_id']}", clear_on_submit=True):
+                        action = st.text_input("Action completed", placeholder="Requested bank account freeze")
+                        result = st.text_area("Result / next step", placeholder="Request sent; awaiting the bank response.")
+                        saved = st.form_submit_button("Record activity", icon=":material/add_task:")
+                    if saved:
+                        if not action.strip():
+                            st.warning("Action completed is required.", icon=":material/warning:")
+                        else:
+                            res = requests.post(
+                                f"{API_URL}/cases/{c['case_id']}/activities",
+                                headers=get_headers(), json={"action": action.strip(), "result": result.strip() or None},
+                            )
+                            if res.status_code == 200:
+                                st.toast("Investigation activity recorded.", icon=":material/check_circle:")
+                                st.rerun()
+                            else:
+                                st.error(f"Could not record activity: {res.text}", icon=":material/error:")
+
+                    activities_res = requests.get(f"{API_URL}/cases/{c['case_id']}/activities", headers=get_headers())
+                    if activities_res.status_code == 200:
+                        activities = activities_res.json()
+                        if activities:
+                            st.markdown("**Progress history**")
+                            for item in activities:
+                                st.markdown(f"- **{str(item['activity_date'])[:16]}** — {item['action']}")
+                                if item.get("result"):
+                                    st.caption(f"Outcome: {item['result']}")
+                        else:
+                            st.caption("No activity has been recorded yet.")
 else:
     st.error(f"Failed to load cases. (HTTP {response.status_code})", icon=":material/error:")

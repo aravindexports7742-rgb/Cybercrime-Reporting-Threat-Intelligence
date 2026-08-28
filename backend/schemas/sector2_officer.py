@@ -29,6 +29,18 @@ class InvestigationNoteResponse(InvestigationNoteCreate):
     class Config:
         from_attributes = True
 
+class InvestigationActivityCreate(BaseModel):
+    action: str
+    result: Optional[str] = None
+
+class InvestigationActivityResponse(InvestigationActivityCreate):
+    activity_id: int
+    case_id: int
+    officer_id: int
+    activity_date: datetime
+    class Config:
+        from_attributes = True
+
 class SuspectCreate(BaseModel):
     name_alias: Optional[str] = None
     contact_info: Optional[str] = None

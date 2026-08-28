@@ -193,14 +193,15 @@ else:
         """
         <style>
         .stApp {
-            background-color: #08111f;
+            background-color: #101510;
             background-image:
-                radial-gradient(circle at 92% 4%, rgba(37, 99, 235, .13), transparent 24%),
-                radial-gradient(circle at 4% 96%, rgba(14, 165, 233, .08), transparent 22%),
-                linear-gradient(rgba(96, 165, 250, .028) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(96, 165, 250, .028) 1px, transparent 1px),
-                linear-gradient(135deg, #08111f 0%, #0b1728 52%, #07101d 100%);
-            background-size: auto, auto, 48px 48px, 48px 48px, auto;
+                radial-gradient(ellipse at 90% 8%, rgba(20, 184, 166, .16), transparent 25%),
+                radial-gradient(ellipse at 7% 88%, rgba(245, 158, 11, .09), transparent 24%),
+                linear-gradient(120deg, transparent 0 47%, rgba(45, 212, 191, .035) 47.1%, transparent 47.3%),
+                linear-gradient(rgba(148, 163, 184, .025) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(148, 163, 184, .025) 1px, transparent 1px),
+                linear-gradient(135deg, #101510 0%, #121b1b 50%, #0d1415 100%);
+            background-size: auto, auto, auto, 56px 56px, 56px 56px, auto;
             background-attachment: fixed;
         }
         .block-container {
@@ -210,10 +211,10 @@ else:
             padding-left: 3rem;
             padding-right: 3rem;
         }
-        [data-testid="stHeader"] { background: rgba(8, 17, 31, .72); }
+        [data-testid="stHeader"] { background: rgba(16, 21, 16, .76); }
         [data-testid="stSidebar"] {
-            background: rgba(5, 14, 27, .88);
-            border-right: 1px solid rgba(96, 165, 250, .12);
+            background: rgba(12, 18, 18, .90);
+            border-right: 1px solid rgba(45, 212, 191, .16);
         }
         [data-testid="stSidebarNav"] { padding-top: .65rem; }
         [data-testid="stSidebarNav"] li a {
@@ -222,19 +223,19 @@ else:
             transition: background .2s ease, transform .2s ease;
         }
         [data-testid="stSidebarNav"] li a:hover {
-            background: rgba(96, 165, 250, .10);
+            background: rgba(45, 212, 191, .11);
             transform: translateX(2px);
         }
         div[data-testid="stVerticalBlockBorderWrapper"] {
-            background: linear-gradient(145deg, rgba(17, 37, 62, .82), rgba(9, 23, 40, .74));
-            border-color: rgba(125, 211, 252, .14);
+            background: linear-gradient(145deg, rgba(24, 38, 38, .86), rgba(13, 24, 25, .80));
+            border-color: rgba(94, 234, 212, .15);
             box-shadow: 0 14px 38px rgba(0, 0, 0, .16), 0 0 0 1px rgba(255, 255, 255, .018) inset;
             backdrop-filter: blur(12px);
             padding: .9rem;
         }
         [data-testid="stMetric"] {
-            background: rgba(15, 35, 58, .62);
-            border: 1px solid rgba(125, 211, 252, .10);
+            background: rgba(22, 38, 39, .66);
+            border: 1px solid rgba(94, 234, 212, .11);
             border-radius: 10px;
             padding: 12px 14px;
         }
@@ -244,8 +245,8 @@ else:
         }
         [data-testid="stMetricLabel"] { font-size: .95rem; }
         [data-testid="stExpander"] {
-            border-color: rgba(125, 211, 252, .12);
-            background: rgba(9, 25, 43, .44);
+            border-color: rgba(94, 234, 212, .13);
+            background: rgba(14, 29, 30, .55);
             border-radius: 10px;
         }
         [data-testid="stMarkdownContainer"] h2 { font-size: 1.75rem; }
