@@ -40,7 +40,7 @@ class User(Base):
     phone_number = Column(String(20))
     password_hash = Column(String(255), nullable=False)
     role_id = Column(Integer, ForeignKey("roles.role_id", onupdate="CASCADE"), nullable=False)
-    account_status = Column(Enum('Active', 'Inactive', 'Suspended'), default='Active', nullable=False)
+    account_status = Column(Enum('Pending', 'Active', 'Inactive', 'Suspended'), default='Active', nullable=False)
     created_at = Column(DateTime, default=datetime.datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow, nullable=False)
 

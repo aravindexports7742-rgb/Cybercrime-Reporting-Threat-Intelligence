@@ -37,6 +37,44 @@ if st.session_state.get("role") != "Administrator":
     st.stop()
 
 with st.container(border=True):
+    st.markdown("**:material/verified_user: Access approvals**")
+    st.caption("Internal roles cannot sign in until an Administrator approves their registration request.")
+    approvals = requests.get(f"{API_URL}/admin/access-requests", headers=get_headers())
+    if approvals.status_code == 200:
+        pending = approvals.json()
+        if pending:
+            for request in pending:
+                left, middle, right = st.columns([3, 2, 2])
+                with left:
+                    st.markdown(f"**{request['full_name']}**")
+                    st.caption(f"{request['email']} · requested {request['requested_role']}")
+                with middle:
+                    st.caption(f"Requested: {str(request['created_at'])[:16]}")
+                with right:
+                    approve, reject = st.columns(2)
+                    with approve:
+                        if st.button("Approve", key=f"approve_{request['user_id']}", type="primary"):
+                            result = requests.put(f"{API_URL}/admin/access-requests/{request['user_id']}", headers=get_headers(), params={"decision": "approve"})
+                            if result.status_code == 200:
+                                st.toast("Access approved.", icon=":material/check_circle:")
+                                st.rerun()
+                            else:
+                                st.error(result.text, icon=":material/error:")
+                    with reject:
+                        if st.button("Reject", key=f"reject_{request['user_id']}"):
+                            result = requests.put(f"{API_URL}/admin/access-requests/{request['user_id']}", headers=get_headers(), params={"decision": "reject"})
+                            if result.status_code == 200:
+                                st.toast("Access request rejected.", icon=":material/block:")
+                                st.rerun()
+                            else:
+                                st.error(result.text, icon=":material/error:")
+                st.divider()
+        else:
+            st.success("No access requests waiting for review.", icon=":material/check_circle:")
+    else:
+        st.error("Could not load access requests.", icon=":material/error:")
+
+with st.container(border=True):
     st.markdown("**:material/person_add: Create new user**")
     with st.form("create_user_form", clear_on_submit=True):
         c1, c2 = st.columns(2)

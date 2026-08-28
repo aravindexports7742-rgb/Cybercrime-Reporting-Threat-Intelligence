@@ -147,6 +147,31 @@ def execute_playbook(incident_id: int, playbook_id: int, db: Session = Depends(g
 def list_users(db: Session = Depends(get_db)):
     return db.query(User).all()
 
+@router.get("/access-requests", dependencies=[Depends(allow_admin)])
+def list_access_requests(db: Session = Depends(get_db)):
+    """Lists public registrations that require administrator approval."""
+    requests = db.query(User).filter(User.account_status == "Pending").all()
+    return [{
+        "user_id": user.user_id,
+        "full_name": user.full_name,
+        "email": user.email,
+        "phone_number": user.phone_number,
+        "requested_role": user.role.role_name,
+        "created_at": user.created_at,
+    } for user in requests]
+
+@router.put("/access-requests/{user_id}", dependencies=[Depends(allow_admin)])
+def decide_access_request(user_id: int, decision: str, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    if decision not in {"approve", "reject"}:
+        raise HTTPException(status_code=400, detail="Decision must be 'approve' or 'reject'")
+    user = db.query(User).filter(User.user_id == user_id, User.account_status == "Pending").first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Pending access request not found")
+    user.account_status = "Active" if decision == "approve" else "Suspended"
+    db.add(AuditLog(user_id=current_user.user_id, action=f"Access request {decision}", resource="users", resource_id=str(user.user_id)))
+    db.commit()
+    return {"message": f"Access request {decision}d.", "account_status": user.account_status}
+
 @router.post("/users", response_model=UserOut, dependencies=[Depends(allow_admin)])
 def create_user(user: UserCreate, db: Session = Depends(get_db)):
     role = db.query(Role).filter(Role.role_name == user.role_name).first()

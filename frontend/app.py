@@ -29,7 +29,11 @@ def login(email, password):
         st.toast("Logged in successfully!", icon=":material/check_circle:")
         st.rerun()
     else:
-        st.error("Login failed. Check your credentials.", icon=":material/error:")
+        try:
+            detail = response.json().get("detail", "Login failed. Check your credentials.")
+        except ValueError:
+            detail = "Login failed. Check your credentials."
+        st.error(detail, icon=":material/error:")
 
 ROLE_META = {
     "Victim":             {"icon": ":material/shield_person:",          "color": "blue"},
@@ -175,7 +179,7 @@ if st.session_state["token"] is None:
                         }
                         res = requests.post(f"{API_URL}/auth/register", json=payload)
                         if res.status_code == 200:
-                            st.success("Account created! You can now sign in.", icon=":material/check_circle:")
+                            st.success(res.json().get("message", "Account created successfully."), icon=":material/check_circle:")
                         else:
                             st.error(f"Registration failed: {res.text}", icon=":material/error:")
 
