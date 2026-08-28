@@ -32,6 +32,10 @@ else:
     st.error("Failed to load users.", icon=":material/error:")
 
 st.space("small")
+if st.session_state.get("role") != "Administrator":
+    st.info("Incident Responders have view-only access to user records.", icon=":material/visibility:")
+    st.stop()
+
 with st.container(border=True):
     st.markdown("**:material/person_add: Create new user**")
     with st.form("create_user_form", clear_on_submit=True):

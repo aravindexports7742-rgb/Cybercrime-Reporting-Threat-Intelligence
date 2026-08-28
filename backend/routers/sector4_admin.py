@@ -21,6 +21,9 @@ router = APIRouter(prefix="/admin", tags=["Sector 4: Admin & Incident Response"]
 
 allow_responder = get_role_checker(["Incident Responder", "Administrator"])
 allow_admin = get_role_checker(["Administrator"])
+# These monitoring pages are visible to Incident Responders in the UI. They
+# receive read-only access; all administrative changes remain Admin-only.
+allow_admin_read = get_role_checker(["Incident Responder", "Administrator"])
 
 # ===================== Incidents =====================
 
@@ -140,7 +143,7 @@ def execute_playbook(incident_id: int, playbook_id: int, db: Session = Depends(g
 
 # ===================== Users & Roles =====================
 
-@router.get("/users", response_model=List[UserOut], dependencies=[Depends(allow_admin)])
+@router.get("/users", response_model=List[UserOut], dependencies=[Depends(allow_admin_read)])
 def list_users(db: Session = Depends(get_db)):
     return db.query(User).all()
 
@@ -192,20 +195,20 @@ def update_user_role(user_id: int, update: UserUpdateRole, db: Session = Depends
     
     return user
 
-@router.get("/roles", response_model=List[RoleOut], dependencies=[Depends(allow_admin)])
+@router.get("/roles", response_model=List[RoleOut], dependencies=[Depends(allow_admin_read)])
 def list_roles(db: Session = Depends(get_db)):
     return db.query(Role).all()
 
 # ===================== Audit & Health =====================
 
-@router.get("/audit-logs", response_model=List[AuditLogOut], dependencies=[Depends(allow_admin)])
+@router.get("/audit-logs", response_model=List[AuditLogOut], dependencies=[Depends(allow_admin_read)])
 def list_audit_logs(db: Session = Depends(get_db)):
     return db.query(AuditLog).order_by(AuditLog.event_time.desc()).limit(100).all()
 
-@router.get("/login-history", response_model=List[LoginHistoryOut], dependencies=[Depends(allow_admin)])
+@router.get("/login-history", response_model=List[LoginHistoryOut], dependencies=[Depends(allow_admin_read)])
 def list_login_history(db: Session = Depends(get_db)):
     return db.query(LoginHistory).order_by(LoginHistory.event_time.desc()).limit(100).all()
 
-@router.get("/system-health", response_model=List[SystemHealthOut], dependencies=[Depends(allow_admin)])
+@router.get("/system-health", response_model=List[SystemHealthOut], dependencies=[Depends(allow_admin_read)])
 def get_system_health(db: Session = Depends(get_db)):
     return db.query(SystemHealth).order_by(SystemHealth.checked_at.desc()).limit(5).all()
