@@ -1,5 +1,7 @@
 import streamlit as st
 import requests
+from datetime import datetime
+from zoneinfo import ZoneInfo
 
 API_URL = "http://127.0.0.1:8000"
 
@@ -190,6 +192,12 @@ else:
     role = st.session_state["role"]
     meta = ROLE_META.get(role, {"icon": ":material/person:", "color": "gray"})
 
+    @st.fragment(run_every=1)
+    def live_clock():
+        """Keeps the command-center time current without reloading the page."""
+        now = datetime.now(ZoneInfo("Asia/Kolkata"))
+        st.caption(now.strftime("%A, %d %B %Y  •  %I:%M:%S %p IST"))
+
     # Shared dashboard chrome. Keeping this in the app shell gives every role
     # the same visual language while leaving each page free to focus on its
     # own workflow.
@@ -333,6 +341,7 @@ else:
         with st.container():
             st.markdown("### :material/radar: CyberShield command center")
             st.caption("Monitor reports, coordinate response, and turn intelligence into action.")
+            live_clock()
         st.badge(role, icon=meta["icon"], color=meta["color"])
 
     pg.run()
