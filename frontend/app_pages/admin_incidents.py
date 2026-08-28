@@ -23,6 +23,7 @@ if res.status_code == 200:
                 st.markdown(f"**Type:** {incident['incident_type']}")
                 if incident.get("case_id"):
                     st.markdown(f"**Linked case:** {incident['case_id']}")
+                    st.caption("When this incident is resolved or closed, the linked case and victim complaint will be marked Resolved for final Officer 2 review.")
                 st.markdown(f"**Current details:** {incident.get('description') or 'No details recorded.'}")
                 with st.form(f"incident_update_{incident['incident_id']}"):
                     c1, c2 = st.columns(2)
@@ -58,10 +59,13 @@ with st.container(border=True):
             inc_type = st.text_input("Incident type",      placeholder="Ransomware, Phishing…")
         with c2:
             severity = st.selectbox("Severity", ["Low","Medium","High","Critical"])
+            case_id = st.number_input("Linked case ID (optional)", min_value=1, step=1, value=None)
         desc = st.text_area("Description", placeholder="What happened?")
         if st.form_submit_button("Create incident", icon=":material/emergency:", type="primary"):
             if ref and inc_type:
                 payload = {"incident_reference":ref,"incident_type":inc_type,"description":desc,"severity":severity,"status":"Detected"}
+                if case_id is not None:
+                    payload["case_id"] = case_id
                 res2 = requests.post(f"{API_URL}/admin/incidents", headers=get_headers(), json=payload)
                 if res2.status_code == 200:
                     st.toast("Incident created.", icon=":material/check_circle:")

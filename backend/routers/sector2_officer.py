@@ -40,6 +40,8 @@ def update_case(case_id: int, updates: CaseUpdate, db: Session = Depends(get_db)
         case.priority = updates.priority
     if updates.status:
         case.status = updates.status
+        if updates.status == "Closed" and case.closed_at is None:
+            case.closed_at = datetime.datetime.utcnow()
     if old_status != case.status or old_priority != case.priority:
         db.add(InvestigationActivity(
             case_id=case.case_id,

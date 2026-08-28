@@ -7,6 +7,8 @@ from backend.models.shared_models import User, Role
 from backend.models.sector4_admin import (
     Incident, IncidentActivity, ResponseAction, Playbook, PlaybookStep, AuditLog, LoginHistory, SystemHealth
 )
+from backend.models.sector2_officer import Case, InvestigationActivity
+from backend.models.sector1_victim import Complaint, VictimProfile, Notification
 from backend.schemas.sector4_admin import (
     IncidentCreate, IncidentOut, IncidentUpdate,
     PlaybookCreate, PlaybookOut,
@@ -29,6 +31,9 @@ allow_admin_read = get_role_checker(["Incident Responder", "Administrator"])
 
 @router.post("/incidents", response_model=IncidentOut, dependencies=[Depends(allow_responder)])
 def create_incident(incident: IncidentCreate, db: Session = Depends(get_db)):
+    if incident.case_id is not None and not db.query(Case).filter(Case.case_id == incident.case_id).first():
+        raise HTTPException(status_code=404, detail="Linked case not found")
+
     new_incident = Incident(
         incident_reference=incident.incident_reference,
         case_id=incident.case_id,
@@ -65,6 +70,7 @@ def update_incident(incident_id: int, incident_update: IncidentUpdate, db: Sessi
         incident.responder_id = incident_update.responder_id
     if incident_update.severity is not None:
         incident.severity = incident_update.severity
+    previous_status = incident.status
     if incident_update.status is not None:
         incident.status = incident_update.status
     if incident_update.description is not None:
@@ -77,6 +83,54 @@ def update_incident(incident_id: int, incident_update: IncidentUpdate, db: Sessi
         action=f"Updated incident status to {incident.status}, severity to {incident.severity}"
     )
     db.add(activity)
+
+    # A resolved response must be visible to the investigation officer and
+    # victim.  Sector 4 closes the security incident; Sector 2 retains the
+    # authority to perform the final legal/investigation case closure.
+    if (
+        previous_status != incident.status
+        and incident.status in {"Resolved", "Closed"}
+        and incident.case_id is not None
+    ):
+        linked_case = db.query(Case).filter(Case.case_id == incident.case_id).first()
+        if linked_case and linked_case.status != "Closed":
+            if linked_case.status != "Resolved":
+                linked_case.status = "Resolved"
+                db.add(InvestigationActivity(
+                    case_id=linked_case.case_id,
+                    officer_id=current_user.user_id,
+                    action="Incident response completed",
+                    result=(
+                        f"Incident {incident.incident_reference} was marked {incident.status}. "
+                        "Case is ready for final officer review and closure."
+                    ),
+                ))
+
+            complaint = db.query(Complaint).filter(
+                Complaint.complaint_id == linked_case.complaint_id
+            ).first()
+            if complaint and complaint.status not in {"Resolved", "Closed"}:
+                complaint.status = "Resolved"
+                profile = db.query(VictimProfile).filter(
+                    VictimProfile.victim_id == complaint.victim_id
+                ).first()
+                if profile:
+                    db.add(Notification(
+                        user_id=profile.user_id,
+                        complaint_id=complaint.complaint_id,
+                        message=(
+                            f"Response to your complaint has been completed. "
+                            f"Case {linked_case.case_reference} is resolved and under final officer review."
+                        ),
+                        event_type="Incident Resolved",
+                    ))
+
+            db.add(AuditLog(
+                user_id=current_user.user_id,
+                action="Incident Resolution Synced",
+                resource="cases",
+                resource_id=str(linked_case.case_id),
+            ))
 
     db.commit()
     db.refresh(incident)
