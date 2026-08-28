@@ -29,7 +29,7 @@ CREATE TABLE users (
     phone_number   VARCHAR(20),
     password_hash  VARCHAR(255) NOT NULL,
     role_id        INT NOT NULL,
-    account_status ENUM('Active','Inactive','Suspended') NOT NULL DEFAULT 'Active',
+    account_status ENUM('Pending','Active','Inactive','Suspended') NOT NULL DEFAULT 'Active',
     created_at     DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at     DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (role_id) REFERENCES roles(role_id) ON DELETE RESTRICT ON UPDATE CASCADE,

@@ -36,17 +36,23 @@ def register(user_data: dict, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail="Email already registered")
         
     hashed_password = get_password_hash(user_data['password'])
+    requested_role = user_data.get('role_name', 'Victim')
+    # Public registration never grants internal access immediately. An existing
+    # Administrator must review and activate every operational role.
+    initial_status = 'Active' if requested_role == 'Victim' else 'Pending'
     new_user = User(
         full_name=user_data['full_name'],
         email=user_data['email'],
         phone_number=user_data.get('phone_number'),
         password_hash=hashed_password,
-        role_id=role.role_id
+        role_id=role.role_id,
+        account_status=initial_status,
     )
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
-    return {"message": "User registered successfully", "user_id": new_user.user_id}
+    message = "Account created successfully." if initial_status == 'Active' else "Access request submitted. An Administrator must approve it before you can sign in."
+    return {"message": message, "user_id": new_user.user_id, "account_status": initial_status}
 
 @app.post("/auth/login")
 def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
@@ -65,6 +71,12 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect email or password",
             headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    if user.account_status != "Active":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="This account is inactive or suspended. Please contact an administrator.",
         )
     
     # Log successful login

@@ -1,0 +1,76 @@
+# Cybercrime & Threat Intelligence Platform Theme (Dark)
+# Professional security operations center aesthetic
+
+[theme]
+base = "dark"
+primaryColor = "#60A5FA"             # Electric blue — interactive elements
+backgroundColor = "#0F172A"          # Deep slate — SOC terminal feel
+secondaryBackgroundColor = "#1E293B" # Slightly lighter slate — cards, widgets
+codeBackgroundColor = "#1E293B"
+textColor = "#F1F5F9"                # Near-white text — easy on eyes
+linkColor = "#60A5FA"
+borderColor = "#334155"
+codeTextColor = "#CBD5E1"
+showWidgetBorder = true
+showSidebarBorder = true
+baseRadius = "8px"
+buttonRadius = "8px"
+
+# Typography — clean professional fonts
+font = "'Inter':https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+headingFont = "'Inter':https://fonts.googleapis.com/css2?family=Inter:wght@600;700&display=swap"
+codeFont = "'JetBrains Mono':https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap"
+baseFontSize = 15
+baseFontWeight = 400
+codeFontSize = "13px"
+headingFontSizes = ["36px", "28px", "22px", "18px", "15px", "13px"]
+headingFontWeights = [700, 600, 600, 600, 500, 500]
+linkUnderline = false
+
+# Semantic colors — threat level palette
+redColor = "#F87171"      # Critical / Error
+orangeColor = "#FB923C"   # High / Warning
+yellowColor = "#FBBF24"   # Medium / Caution
+greenColor = "#34D399"    # Resolved / Healthy / Low risk
+blueColor = "#60A5FA"     # Info / Active
+violetColor = "#A78BFA"   # Analyst / Special
+grayColor = "#94A3B8"     # Neutral / Secondary
+
+# Chart colors — distinguishable dark-mode palette
+chartCategoricalColors = [
+    "#60A5FA",
+    "#34D399",
+    "#A78BFA",
+    "#F87171",
+    "#FBBF24",
+    "#38BDF8",
+    "#FB923C",
+    "#94A3B8",
+]
+
+# Sequential heatmap (blue gradient)
+chartSequentialColors = [
+    "#0C4A6E",
+    "#075985",
+    "#0369A1",
+    "#0284C7",
+    "#0EA5E9",
+    "#38BDF8",
+    "#7DD3FC",
+    "#BAE6FD",
+    "#E0F2FE",
+    "#F0F9FF",
+]
+
+# Dataframe styling
+dataframeBorderColor = "#334155"
+dataframeHeaderBackgroundColor = "#1E293B"
+
+# Sidebar — same dark palette
+[theme.sidebar]
+backgroundColor = "#0A1628"
+secondaryBackgroundColor = "#1E293B"
+codeBackgroundColor = "#1E293B"
+textColor = "#F1F5F9"
+borderColor = "#334155"
+primaryColor = "#60A5FA"

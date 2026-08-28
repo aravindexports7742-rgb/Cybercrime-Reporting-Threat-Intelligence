@@ -7,6 +7,7 @@ Run:  python seed_data.py
 """
 
 import os, random, hashlib, datetime
+import bcrypt
 from dotenv import load_dotenv
 import pymysql
 from pymysql.cursors import DictCursor
@@ -144,7 +145,9 @@ cur.execute("SELECT email FROM users")
 for r in cur.fetchall():
     existing_emails.add(r['email'])
 
-pw_hash = hashlib.sha256(b"Password@123").hexdigest()
+# Match the bcrypt format used by backend/security/hashing.py so every
+# generated account can authenticate with the documented demo password.
+pw_hash = bcrypt.hashpw(b"Password@123", bcrypt.gensalt()).decode("utf-8")
 user_ids_by_role = {rid: [] for rid in all_role_ids}
 
 cur.execute("SELECT user_id, role_id FROM users")

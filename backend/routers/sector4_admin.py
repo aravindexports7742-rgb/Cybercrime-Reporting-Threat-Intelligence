@@ -7,6 +7,8 @@ from backend.models.shared_models import User, Role
 from backend.models.sector4_admin import (
     Incident, IncidentActivity, ResponseAction, Playbook, PlaybookStep, AuditLog, LoginHistory, SystemHealth
 )
+from backend.models.sector2_officer import Case, InvestigationActivity
+from backend.models.sector1_victim import Complaint, VictimProfile, Notification
 from backend.schemas.sector4_admin import (
     IncidentCreate, IncidentOut, IncidentUpdate,
     PlaybookCreate, PlaybookOut,
@@ -21,11 +23,17 @@ router = APIRouter(prefix="/admin", tags=["Sector 4: Admin & Incident Response"]
 
 allow_responder = get_role_checker(["Incident Responder", "Administrator"])
 allow_admin = get_role_checker(["Administrator"])
+# These monitoring pages are visible to Incident Responders in the UI. They
+# receive read-only access; all administrative changes remain Admin-only.
+allow_admin_read = get_role_checker(["Incident Responder", "Administrator"])
 
 # ===================== Incidents =====================
 
 @router.post("/incidents", response_model=IncidentOut, dependencies=[Depends(allow_responder)])
 def create_incident(incident: IncidentCreate, db: Session = Depends(get_db)):
+    if incident.case_id is not None and not db.query(Case).filter(Case.case_id == incident.case_id).first():
+        raise HTTPException(status_code=404, detail="Linked case not found")
+
     new_incident = Incident(
         incident_reference=incident.incident_reference,
         case_id=incident.case_id,
@@ -62,6 +70,7 @@ def update_incident(incident_id: int, incident_update: IncidentUpdate, db: Sessi
         incident.responder_id = incident_update.responder_id
     if incident_update.severity is not None:
         incident.severity = incident_update.severity
+    previous_status = incident.status
     if incident_update.status is not None:
         incident.status = incident_update.status
     if incident_update.description is not None:
@@ -74,6 +83,54 @@ def update_incident(incident_id: int, incident_update: IncidentUpdate, db: Sessi
         action=f"Updated incident status to {incident.status}, severity to {incident.severity}"
     )
     db.add(activity)
+
+    # A resolved response must be visible to the investigation officer and
+    # victim.  Sector 4 closes the security incident; Sector 2 retains the
+    # authority to perform the final legal/investigation case closure.
+    if (
+        previous_status != incident.status
+        and incident.status in {"Resolved", "Closed"}
+        and incident.case_id is not None
+    ):
+        linked_case = db.query(Case).filter(Case.case_id == incident.case_id).first()
+        if linked_case and linked_case.status != "Closed":
+            if linked_case.status != "Resolved":
+                linked_case.status = "Resolved"
+                db.add(InvestigationActivity(
+                    case_id=linked_case.case_id,
+                    officer_id=current_user.user_id,
+                    action="Incident response completed",
+                    result=(
+                        f"Incident {incident.incident_reference} was marked {incident.status}. "
+                        "Case is ready for final officer review and closure."
+                    ),
+                ))
+
+            complaint = db.query(Complaint).filter(
+                Complaint.complaint_id == linked_case.complaint_id
+            ).first()
+            if complaint and complaint.status not in {"Resolved", "Closed"}:
+                complaint.status = "Resolved"
+                profile = db.query(VictimProfile).filter(
+                    VictimProfile.victim_id == complaint.victim_id
+                ).first()
+                if profile:
+                    db.add(Notification(
+                        user_id=profile.user_id,
+                        complaint_id=complaint.complaint_id,
+                        message=(
+                            f"Response to your complaint has been completed. "
+                            f"Case {linked_case.case_reference} is resolved and under final officer review."
+                        ),
+                        event_type="Incident Resolved",
+                    ))
+
+            db.add(AuditLog(
+                user_id=current_user.user_id,
+                action="Incident Resolution Synced",
+                resource="cases",
+                resource_id=str(linked_case.case_id),
+            ))
 
     db.commit()
     db.refresh(incident)
@@ -140,9 +197,34 @@ def execute_playbook(incident_id: int, playbook_id: int, db: Session = Depends(g
 
 # ===================== Users & Roles =====================
 
-@router.get("/users", response_model=List[UserOut], dependencies=[Depends(allow_admin)])
+@router.get("/users", response_model=List[UserOut], dependencies=[Depends(allow_admin_read)])
 def list_users(db: Session = Depends(get_db)):
     return db.query(User).all()
+
+@router.get("/access-requests", dependencies=[Depends(allow_admin)])
+def list_access_requests(db: Session = Depends(get_db)):
+    """Lists public registrations that require administrator approval."""
+    requests = db.query(User).filter(User.account_status == "Pending").all()
+    return [{
+        "user_id": user.user_id,
+        "full_name": user.full_name,
+        "email": user.email,
+        "phone_number": user.phone_number,
+        "requested_role": user.role.role_name,
+        "created_at": user.created_at,
+    } for user in requests]
+
+@router.put("/access-requests/{user_id}", dependencies=[Depends(allow_admin)])
+def decide_access_request(user_id: int, decision: str, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    if decision not in {"approve", "reject"}:
+        raise HTTPException(status_code=400, detail="Decision must be 'approve' or 'reject'")
+    user = db.query(User).filter(User.user_id == user_id, User.account_status == "Pending").first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Pending access request not found")
+    user.account_status = "Active" if decision == "approve" else "Suspended"
+    db.add(AuditLog(user_id=current_user.user_id, action=f"Access request {decision}", resource="users", resource_id=str(user.user_id)))
+    db.commit()
+    return {"message": f"Access request {decision}d.", "account_status": user.account_status}
 
 @router.post("/users", response_model=UserOut, dependencies=[Depends(allow_admin)])
 def create_user(user: UserCreate, db: Session = Depends(get_db)):
@@ -192,20 +274,20 @@ def update_user_role(user_id: int, update: UserUpdateRole, db: Session = Depends
     
     return user
 
-@router.get("/roles", response_model=List[RoleOut], dependencies=[Depends(allow_admin)])
+@router.get("/roles", response_model=List[RoleOut], dependencies=[Depends(allow_admin_read)])
 def list_roles(db: Session = Depends(get_db)):
     return db.query(Role).all()
 
 # ===================== Audit & Health =====================
 
-@router.get("/audit-logs", response_model=List[AuditLogOut], dependencies=[Depends(allow_admin)])
+@router.get("/audit-logs", response_model=List[AuditLogOut], dependencies=[Depends(allow_admin_read)])
 def list_audit_logs(db: Session = Depends(get_db)):
     return db.query(AuditLog).order_by(AuditLog.event_time.desc()).limit(100).all()
 
-@router.get("/login-history", response_model=List[LoginHistoryOut], dependencies=[Depends(allow_admin)])
+@router.get("/login-history", response_model=List[LoginHistoryOut], dependencies=[Depends(allow_admin_read)])
 def list_login_history(db: Session = Depends(get_db)):
     return db.query(LoginHistory).order_by(LoginHistory.event_time.desc()).limit(100).all()
 
-@router.get("/system-health", response_model=List[SystemHealthOut], dependencies=[Depends(allow_admin)])
+@router.get("/system-health", response_model=List[SystemHealthOut], dependencies=[Depends(allow_admin_read)])
 def get_system_health(db: Session = Depends(get_db)):
     return db.query(SystemHealth).order_by(SystemHealth.checked_at.desc()).limit(5).all()
